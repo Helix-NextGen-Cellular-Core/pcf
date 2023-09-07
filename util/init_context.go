@@ -8,6 +8,7 @@ package util
 
 import (
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -43,7 +44,7 @@ func InitpcfContext(context *context.PCFContext) {
 			context.UriScheme = models.UriScheme(sbi.Scheme)
 		}
 		if sbi.RegisterIPv4 != "" {
-			context.RegisterIPv4 = sbi.RegisterIPv4
+			context.RegisterIPv4 = os.Getenv("POD_IP") //context.RegisterIPv4 = sbi.RegisterIPv4
 		}
 		if sbi.Port != 0 {
 			context.SBIPort = sbi.Port
@@ -77,6 +78,16 @@ func InitpcfContext(context *context.PCFContext) {
 		context.PcfSuppFeats[service.ServiceName], err = openapi.NewSupportedFeature(service.SupportedFeatures)
 		if err != nil {
 			logger.UtilLog.Errorf("openapi NewSupportedFeature error: %+v", err)
+		}
+	}
+
+	context.EnableScaling = configuration.EnableScaling
+	context.EnableNrfCaching = configuration.EnableNrfCaching
+	if configuration.EnableNrfCaching {
+		if configuration.NrfCacheEvictionInterval == 0 {
+			context.NrfCacheEvictionInterval = time.Duration(900) // 15 mins
+		} else {
+			context.NrfCacheEvictionInterval = time.Duration(configuration.NrfCacheEvictionInterval)
 		}
 	}
 }

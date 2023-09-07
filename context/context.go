@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/omec-project/idgenerator"
 	"github.com/omec-project/openapi"
@@ -66,6 +67,11 @@ type PCFContext struct {
 	DnnList                 []string
 	PlmnList                []factory.PlmnSupportItem
 	PcfSubscriberPolicyData map[string]*PcfSubscriberPolicyData // subscriberId is key
+
+	EnableNrfCaching         bool
+	NrfCacheEvictionInterval time.Duration
+	NfStatusSubscriptions    sync.Map // map[NfInstanceID]models.NrfSubscriptionData.SubscriptionId
+	EnableScaling            bool
 }
 
 type SessionPolicy struct {

@@ -75,4 +75,10 @@ var routes = Routes{
 		"/amfstatus",
 		HTTPAmfStatusChangeNotify,
 	},
+	{
+		"NfStatusNotify",
+		"POST",
+		"/nf-status-notify",
+		HTTPNfSubscriptionStatusNotify,
+	},
 }

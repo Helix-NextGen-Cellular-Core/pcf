@@ -19,6 +19,7 @@ require (
 	github.com/omec-project/idgenerator v1.1.0
 	github.com/omec-project/logger_conf v1.1.0
 	github.com/omec-project/logger_util v1.1.0
+	github.com/omec-project/nrf v1.0.1
 	github.com/omec-project/openapi v1.1.0
 	github.com/omec-project/path_util v1.1.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -28,6 +29,5 @@ require (
 	github.com/urfave/cli v1.22.5
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.48.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

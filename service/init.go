@@ -9,10 +9,12 @@ package service
 import (
 	"bufio"
 	"fmt"
+	"hash/fnv"
 	"math"
 	"os"
 	"os/exec"
 	"os/signal"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,14 +23,12 @@ import (
 
 	"github.com/antihax/optional"
 	"github.com/gin-contrib/cors"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
-
 	"github.com/omec-project/config5g/proto/client"
 	protos "github.com/omec-project/config5g/proto/sdcoreConfig"
 	"github.com/omec-project/http2_util"
 	"github.com/omec-project/idgenerator"
 	"github.com/omec-project/logger_util"
+	nrf_cache "github.com/omec-project/nrf/nrfcache"
 	"github.com/omec-project/openapi/Nnrf_NFDiscovery"
 	"github.com/omec-project/openapi/models"
 	"github.com/omec-project/path_util"
@@ -37,6 +37,7 @@ import (
 	"github.com/omec-project/pcf/bdtpolicy"
 	"github.com/omec-project/pcf/consumer"
 	"github.com/omec-project/pcf/context"
+	pcf_context "github.com/omec-project/pcf/context"
 	"github.com/omec-project/pcf/factory"
 	"github.com/omec-project/pcf/httpcallback"
 	"github.com/omec-project/pcf/internal/notifyevent"
@@ -46,6 +47,8 @@ import (
 	"github.com/omec-project/pcf/smpolicy"
 	"github.com/omec-project/pcf/uepolicy"
 	"github.com/omec-project/pcf/util"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
 )
 
 type PCF struct{}
@@ -231,6 +234,10 @@ func (pcf *PCF) Start() {
 
 	//Attempt NRF Registration until success
 	go pcf.RegisterNF()
+	if self.EnableNrfCaching {
+		initLog.Infof("Enable NRF caching feature for %d seconds", self.NrfCacheEvictionInterval)
+		nrf_cache.InitNrfCaching(self.NrfCacheEvictionInterval*time.Second, consumer.SendNfDiscoveryToNrf)
+	}
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
@@ -341,6 +348,21 @@ func (pcf *PCF) Terminate() {
 	} else {
 		logger.InitLog.Infof("Deregister from NRF successfully")
 	}
+	pcfSelf := pcf_context.PCF_Self()
+	pcfSelf.NfStatusSubscriptions.Range(func(nfInstanceId, v interface{}) bool {
+		if subscriptionId, ok := pcfSelf.NfStatusSubscriptions.Load(nfInstanceId); ok {
+			logger.InitLog.Debugf("SubscriptionId is %v", subscriptionId.(string))
+			problemDetails, err := consumer.SendRemoveSubscription(subscriptionId.(string))
+			if problemDetails != nil {
+				logger.InitLog.Errorf("Remove NF Subscription Failed Problem[%+v]", problemDetails)
+			} else if err != nil {
+				logger.InitLog.Errorf("Remove NF Subscription Error[%+v]", err)
+			} else {
+				logger.InitLog.Infoln("[PCF] Remove NF Subscription successful")
+			}
+		}
+		return true
+	})
 	logger.InitLog.Infof("PCF terminated")
 }
 
@@ -438,7 +460,27 @@ func (pcf *PCF) DiscoverUdr() {
 	if resp, err := consumer.SendSearchNFInstances(self.NrfUri, models.NfType_UDR, models.NfType_PCF, param); err != nil {
 		initLog.Errorln(err)
 	} else {
+		nfInstanceIds := make([]string, 0, len(resp.NfInstances))
+		for _, profile := range resp.NfInstances {
+			nfInstanceIds = append(nfInstanceIds, profile.NfInstanceId)
+		}
+		sort.Strings(nfInstanceIds)
+
+		nfInstanceIdIndexMap := make(map[string]int)
+		for index, value := range nfInstanceIds {
+			nfInstanceIdIndexMap[value] = index
+		}
+		nfInstanceIndex := 0
+		if self.EnableScaling == true {
+			h := fnv.New32a()
+			h.Write([]byte(self.NfId))
+			key := int(h.Sum32())
+			nfInstanceIndex = key % len(resp.NfInstances)
+		}
 		for _, nfProfile := range resp.NfInstances {
+			if nfInstanceIndex != nfInstanceIdIndexMap[nfProfile.NfInstanceId] {
+				continue
+			}
 			udruri := util.SearchNFServiceUri(nfProfile, models.ServiceName_NUDR_DR, models.NfServiceStatus_REGISTERED)
 			if udruri != "" {
 				self.SetDefaultUdrURI(udruri)

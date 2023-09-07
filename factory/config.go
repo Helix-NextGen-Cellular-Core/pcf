@@ -37,15 +37,17 @@ const (
 )
 
 type Configuration struct {
-	PcfName         string            `yaml:"pcfName,omitempty"`
-	Sbi             *Sbi              `yaml:"sbi,omitempty"`
-	TimeFormat      string            `yaml:"timeFormat,omitempty"`
-	DefaultBdtRefId string            `yaml:"defaultBdtRefId,omitempty"`
-	NrfUri          string            `yaml:"nrfUri,omitempty"`
-	ServiceList     []Service         `yaml:"serviceList,omitempty"`
-	PlmnList        []PlmnSupportItem `yaml:"plmnList,omitempty"`
-	Mongodb         *Mongodb          `yaml:"mongodb"`
-
+	PcfName                  string            `yaml:"pcfName,omitempty"`
+	Sbi                      *Sbi              `yaml:"sbi,omitempty"`
+	TimeFormat               string            `yaml:"timeFormat,omitempty"`
+	DefaultBdtRefId          string            `yaml:"defaultBdtRefId,omitempty"`
+	NrfUri                   string            `yaml:"nrfUri,omitempty"`
+	ServiceList              []Service         `yaml:"serviceList,omitempty"`
+	PlmnList                 []PlmnSupportItem `yaml:"plmnList,omitempty"`
+	Mongodb                  *Mongodb          `yaml:"mongodb"`
+	EnableNrfCaching         bool              `yaml:"enableNrfCaching"`
+	NrfCacheEvictionInterval int               `yaml:"nrfCacheEvictionInterval,omitempty"`
+	EnableScaling            bool              `yaml:"enableScaling,omitempty"`
 	/* below config received from RoC */
 	DnnList   map[string][]string // sst+sd os key
 	SlicePlmn map[string]PlmnSupportItem
