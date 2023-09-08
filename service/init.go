@@ -471,7 +471,7 @@ func (pcf *PCF) DiscoverUdr() {
 			nfInstanceIdIndexMap[value] = index
 		}
 		nfInstanceIndex := 0
-		if self.EnableScaling == true && len(resp.NfInstances) > 0 {
+		if self.EnableScaling == true {
 			h := fnv.New32a()
 			h.Write([]byte(self.NfId))
 			key := int(h.Sum32())
