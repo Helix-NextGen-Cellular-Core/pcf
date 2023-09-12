@@ -9,12 +9,10 @@ package service
 import (
 	"bufio"
 	"fmt"
-	"hash/fnv"
 	"math"
 	"os"
 	"os/exec"
 	"os/signal"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -460,27 +458,7 @@ func (pcf *PCF) DiscoverUdr() {
 	if resp, err := consumer.SendSearchNFInstances(self.NrfUri, models.NfType_UDR, models.NfType_PCF, param); err != nil {
 		initLog.Errorln(err)
 	} else {
-		nfInstanceIds := make([]string, 0, len(resp.NfInstances))
-		for _, profile := range resp.NfInstances {
-			nfInstanceIds = append(nfInstanceIds, profile.NfInstanceId)
-		}
-		sort.Strings(nfInstanceIds)
-
-		nfInstanceIdIndexMap := make(map[string]int)
-		for index, value := range nfInstanceIds {
-			nfInstanceIdIndexMap[value] = index
-		}
-		nfInstanceIndex := 0
-		if self.EnableScaling == true {
-			h := fnv.New32a()
-			h.Write([]byte(self.NfId))
-			key := int(h.Sum32())
-			nfInstanceIndex = key % len(resp.NfInstances)
-		}
 		for _, nfProfile := range resp.NfInstances {
-			if nfInstanceIndex != nfInstanceIdIndexMap[nfProfile.NfInstanceId] {
-				continue
-			}
 			udruri := util.SearchNFServiceUri(nfProfile, models.ServiceName_NUDR_DR, models.NfServiceStatus_REGISTERED)
 			if udruri != "" {
 				self.SetDefaultUdrURI(udruri)

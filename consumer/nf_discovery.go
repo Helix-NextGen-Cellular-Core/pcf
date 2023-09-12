@@ -110,7 +110,7 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 	return ""
 }
 
-func SendNFIntancesAMF(nrfUri string, guami models.Guami, serviceName models.ServiceName) string {
+func SendNFIntancesAMF(nrfUri string, guami models.Guami, serviceName models.ServiceName, id string) string {
 	targetNfType := models.NfType_AMF
 	requestNfType := models.NfType_PCF
 
@@ -131,7 +131,28 @@ func SendNFIntancesAMF(nrfUri string, guami models.Guami, serviceName models.Ser
 		logger.Consumerlog.Error(err.Error())
 		return ""
 	}
+	nfInstanceIds := make([]string, 0, len(result.NfInstances))
 	for _, profile := range result.NfInstances {
+		nfInstanceIds = append(nfInstanceIds, profile.NfInstanceId)
+	}
+	sort.Strings(nfInstanceIds)
+
+	nfInstanceIdIndexMap := make(map[string]int)
+	for index, value := range nfInstanceIds {
+		nfInstanceIdIndexMap[value] = index
+	}
+
+	h := fnv.New32a()
+	h.Write([]byte(id))
+	key := int(h.Sum32())
+	nfInstanceIndex := 0
+	if pcf_context.PCF_Self().EnableScaling {
+		nfInstanceIndex = key % len(result.NfInstances)
+	}
+	for _, profile := range result.NfInstances {
+		if nfInstanceIndex != nfInstanceIdIndexMap[profile.NfInstanceId] {
+			continue
+		}
 		return util.SearchNFServiceUri(profile, serviceName, models.NfServiceStatus_REGISTERED)
 	}
 	return ""

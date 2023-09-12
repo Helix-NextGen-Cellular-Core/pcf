@@ -8,9 +8,7 @@ package producer
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
-	"sort"
 
 	"github.com/antihax/optional"
 	"github.com/google/uuid"
@@ -286,28 +284,7 @@ func getDefaultUdrUri(context *pcf_context.PCFContext) string {
 	if err != nil {
 		return ""
 	}
-	nfInstanceIds := make([]string, 0, len(resp.NfInstances))
-	for _, profile := range resp.NfInstances {
-		nfInstanceIds = append(nfInstanceIds, profile.NfInstanceId)
-	}
-	sort.Strings(nfInstanceIds)
-
-	nfInstanceIdIndexMap := make(map[string]int)
-	for index, value := range nfInstanceIds {
-		nfInstanceIdIndexMap[value] = index
-	}
-
-	nfInstanceIndex := 0
-	if context.EnableScaling == true {
-		h := fnv.New32a()
-		h.Write([]byte(context.NfId))
-		key := int(h.Sum32())
-		nfInstanceIndex = key % len(resp.NfInstances)
-	}
 	for _, nfProfile := range resp.NfInstances {
-		if nfInstanceIndex != nfInstanceIdIndexMap[nfProfile.NfInstanceId] {
-			continue
-		}
 		udruri := util.SearchNFServiceUri(nfProfile, models.ServiceName_NUDR_DR, models.NfServiceStatus_REGISTERED)
 		if udruri != "" {
 			return udruri
