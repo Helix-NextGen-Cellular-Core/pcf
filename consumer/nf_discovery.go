@@ -95,7 +95,7 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 	h.Write([]byte(id))
 	key := int(h.Sum32())
 	nfInstanceIndex := 0
-	if pcf_context.PCF_Self().EnableScaling {
+	if pcf_context.PCF_Self().EnableScaling && len(result.NfInstances) > 0 {
 		nfInstanceIndex = key % len(result.NfInstances)
 	}
 
@@ -146,7 +146,7 @@ func SendNFIntancesAMF(nrfUri string, guami models.Guami, serviceName models.Ser
 	h.Write([]byte(id))
 	key := int(h.Sum32())
 	nfInstanceIndex := 0
-	if pcf_context.PCF_Self().EnableScaling {
+	if pcf_context.PCF_Self().EnableScaling && len(result.NfInstances) > 0 {
 		nfInstanceIndex = key % len(result.NfInstances)
 	}
 	for _, profile := range result.NfInstances {
