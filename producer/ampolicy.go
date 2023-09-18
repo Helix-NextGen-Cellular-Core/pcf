@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/mohae/deepcopy"
 
@@ -299,8 +300,11 @@ func PostPoliciesProcedure(polAssoId string,
 		})
 
 		if needSubscribe {
-			logger.AMpolicylog.Debugf("Subscribe AMF status change[GUAMI: %+v]", *policyAssociationRequest.Guami)
-			amfUri := consumer.SendNFIntancesAMF(pcfSelf.NrfUri, *policyAssociationRequest.Guami, models.ServiceName_NAMF_COMM, policyAssociationRequest.Supi)
+			logger.AMpolicylog.Infof("Subscribe AMF status change[GUAMI: %+v] %v", *policyAssociationRequest.Guami, policyAssociationRequest.NotificationUri)
+			notificationUri := policyAssociationRequest.NotificationUri
+			tempIp := strings.Split(notificationUri, "http://")
+			ipAddress := strings.Split(tempIp[1], ":")
+			amfUri := consumer.SendNFIntancesAMF(pcfSelf.NrfUri, *policyAssociationRequest.Guami, models.ServiceName_NAMF_COMM, ipAddress[0])
 			if amfUri != "" {
 				problemDetails, err := consumer.AmfStatusChangeSubscribe(amfUri, []models.Guami{*policyAssociationRequest.Guami})
 				if err != nil {
