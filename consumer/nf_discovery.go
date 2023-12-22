@@ -104,7 +104,7 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 			continue
 		}
 		if uri := util.SearchNFServiceUri(profile, models.ServiceName_NUDR_DR, models.NfServiceStatus_REGISTERED); uri != "" {
-			fmt.Println("for Ue: ", id, " for targetNfType ", string(targetNfType), " NF is: ", profile)
+			logger.ConsumerLog.Warnln("for Ue: ", id, " for targetNfType ", string(targetNfType), " uri:", uri, " NF is: ", profile)
 			return uri
 		}
 	}
