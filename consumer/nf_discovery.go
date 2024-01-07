@@ -9,9 +9,10 @@ package consumer
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/antihax/optional"
 	nrf_cache "github.com/omec-project/nrf/nrfcache"
@@ -91,12 +92,15 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 		nfInstanceIdIndexMap[value] = index
 	}
 
-	h := fnv.New32a()
-	h.Write([]byte(id))
-	key := int(h.Sum32())
+	// h := fnv.New32a()
+	// h.Write([]byte(id))
+	// key := int(h.Sum32())
 	nfInstanceIndex := 0
 	if pcf_context.PCF_Self().EnableScaling && len(result.NfInstances) > 0 {
-		nfInstanceIndex = key % len(result.NfInstances)
+		parts := strings.Split(id, "-")
+		imsiNumber, _ := strconv.Atoi(parts[1])
+		nfInstanceIndex = imsiNumber % len(result.NfInstances)
+		// nfInstanceIndex = key % len(result.NfInstances)
 	}
 
 	for _, profile := range result.NfInstances {
@@ -104,7 +108,7 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 			continue
 		}
 		if uri := util.SearchNFServiceUri(profile, models.ServiceName_NUDR_DR, models.NfServiceStatus_REGISTERED); uri != "" {
-			logger.ConsumerLog.Warnln("for Ue: ", id, " for targetNfType ", string(targetNfType), " uri:", uri, " NF is: ", profile)
+			logger.ConsumerLog.Warnln("for Ue: ", id, " nfInstanceIndex: ", nfInstanceIndex, " for targetNfType ", string(targetNfType), " uri:", uri, " NF is: ", profile)
 			return uri
 		}
 	}
