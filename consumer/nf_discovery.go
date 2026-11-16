@@ -92,15 +92,11 @@ func SendNFIntancesUDR(nrfUri, id string) string {
 		nfInstanceIdIndexMap[value] = index
 	}
 
-	// h := fnv.New32a()
-	// h.Write([]byte(id))
-	// key := int(h.Sum32())
 	nfInstanceIndex := 0
 	if pcf_context.PCF_Self().EnableScaling && len(result.NfInstances) > 0 {
 		parts := strings.Split(id, "-")
 		imsiNumber, _ := strconv.Atoi(parts[1])
 		nfInstanceIndex = imsiNumber % len(result.NfInstances)
-		// nfInstanceIndex = key % len(result.NfInstances)
 	}
 
 	for _, profile := range result.NfInstances {
@@ -138,7 +134,6 @@ func SendNFIntancesAMF(nrfUri string, guami models.Guami, serviceName models.Ser
 	}
 
 	for _, profile := range result.NfInstances {
-		//logger.ConsumerLog.Infof("Looking for ip match %v %v %d", profile.Ipv4Addresses[0], ipAddress, len(result.NfInstances))
 		if profile.Ipv4Addresses[0] != ipAddress {
 			continue
 		}

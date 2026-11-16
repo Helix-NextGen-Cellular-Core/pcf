@@ -44,7 +44,7 @@ func InitpcfContext(context *context.PCFContext) {
 			context.UriScheme = models.UriScheme(sbi.Scheme)
 		}
 		if sbi.RegisterIPv4 != "" {
-			context.RegisterIPv4 = os.Getenv("POD_IP") //context.RegisterIPv4 = sbi.RegisterIPv4
+			context.RegisterIPv4 = os.Getenv("POD_IP")
 		}
 		if sbi.Port != 0 {
 			context.SBIPort = sbi.Port

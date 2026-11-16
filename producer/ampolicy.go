@@ -210,9 +210,6 @@ func HandlePostPolicies(request *http_wrapper.Request) *http_wrapper.Response {
 func PostPoliciesProcedure(polAssoId string,
 	policyAssociationRequest models.PolicyAssociationRequest) (*models.PolicyAssociation, string, *models.ProblemDetails) {
 	var response models.PolicyAssociation
-	// defer func(st int64) {
-	// 	logger.AMpolicylog.Warnln("ueID ", policyAssociationRequest.Supi, " PostPoliciesProcedure took: ", (time.Now().UnixNano() - st))
-	// }(time.Now().UnixNano())
 
 	pcfSelf := pcf_context.PCF_Self()
 	var ue *pcf_context.UeContext
