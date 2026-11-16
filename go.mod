@@ -2,9 +2,9 @@ module github.com/omec-project/pcf
 
 go 1.16
 
-replace github.com/omec-project/nrf => ../nrf
+replace github.com/omec-project/nrf => github.com/Helix-NextGen-Cellular-Core/nrf v1.0.0
 
-replace github.com/omec-project/MongoDBLibrary => ../mongodblibrary
+replace github.com/omec-project/MongoDBLibrary => github.com/Helix-NextGen-Cellular-Core/mongodblibrary v1.0.0
 
 require (
 	github.com/antihax/optional v1.0.0
